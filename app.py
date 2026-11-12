@@ -18,7 +18,7 @@ if uploaded_file is not None:
     df = pd.read_csv(uploaded_file, sep=";")
     
     # Filtro: Sexo
-    sexos_disponibles = df["Sexo"].unique().tolist()
+    sexos_disponibles = df["sexo"].unique().tolist()
     sexo_seleccionado = st.sidebar.multiselect("Sexo", sexos_disponibles, default=sexos_disponibles)
     
     # Filtro: Sección (agregando la opción "Todas")
