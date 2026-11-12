@@ -14,11 +14,24 @@ st.sidebar.title("Datos y filtros")
 uploaded_file = st.sidebar.file_uploader("Carga el archivo de estudiantes", type=["csv"])
 
 if uploaded_file is not None:
-    # Leer el CSV indicando que está separado por punto y coma (SOLUCIÓN AL KEYERROR)
-    df = pd.read_csv(uploaded_file, sep=";")
+    # 1. Leer el CSV (por defecto usa comas)
+    df = pd.read_csv(uploaded_file)
+    
+    # 2. Preparar los datos según tu archivo
+    # Calcular el promedio usando nota_1 y nota_2
+    df["Promedio"] = (df["nota_1"] + df["nota_2"]) / 2
+    
+    # Renombrar las columnas para que coincidan con la interfaz visual
+    df = df.rename(columns={
+        "id": "ID",
+        "estudiante": "Estudiante",
+        "sexo": "Sexo",
+        "seccion": "Sección",
+        "asistencia": "Asistencia (%)"
+    })
     
     # Filtro: Sexo
-    sexos_disponibles = df["sexo"].unique().tolist()
+    sexos_disponibles = df["Sexo"].unique().tolist()
     sexo_seleccionado = st.sidebar.multiselect("Sexo", sexos_disponibles, default=sexos_disponibles)
     
     # Filtro: Sección (agregando la opción "Todas")
@@ -82,7 +95,6 @@ if uploaded_file is not None:
     if mostrar_tabla:
         col_grafico, col_tabla = st.columns(2)
     else:
-        # Si se oculta la tabla, el gráfico usa casi toda la pantalla
         col_grafico, col_tabla = st.columns([1, 0.01]) 
         
     with col_grafico:
@@ -110,12 +122,13 @@ if uploaded_file is not None:
     with col_tabla:
         if mostrar_tabla:
             st.subheader("Estudiantes seleccionados")
-            st.dataframe(df_filtrado, hide_index=True, use_container_width=True)
+            # Seleccionar solo las columnas que se ven en la tabla de la imagen de tu profesor
+            columnas_finales = ["ID", "Estudiante", "Sexo", "Sección", "Promedio", "Asistencia (%)"]
+            st.dataframe(df_filtrado[columnas_finales], hide_index=True, use_container_width=True)
             
     # --- Pie de página y Descarga ---
     st.write("")
-    # También se añade sep=";" aquí para que al descargarlo abra bien en Excel
-    csv_descarga = df_filtrado.to_csv(index=False, sep=";").encode('utf-8')
+    csv_descarga = df_filtrado.to_csv(index=False).encode('utf-8')
     st.download_button(
         label="Descargar selección CSV",
         data=csv_descarga,
